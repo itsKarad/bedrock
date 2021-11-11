@@ -9,13 +9,22 @@
 {% block banner_id %}fundraising-banner{% endblock %}
 
 {% block banner_title %}
-  <span>{{ ftl('banner-fundraising-title') }}</span>
+  {% if switch('fundraising-banner-giving-tuesday-2021') %}
+    {{ ftl('banner-fundraising-giving-tuesday-title', fallback='banner-fundraising-title') }}
+  {% else %}
+    {{ ftl('banner-fundraising-title-v2', fallback='banner-fundraising-title') }}
+  {% endif %}
 {% endblock %}
 
 {% block banner_content %}
-  <p>{{ ftl('banner-fundraising-body') }}</p>
+  {% if ftl_has_messages('banner-fundraising-body-v2', 'banner-fundraising-body-extra') %}
+    <p>{{ ftl('banner-fundraising-body-v2') }}</p>
+    <p>{{ ftl('banner-fundraising-body-extra') }}</p>
+  {% else %}
+    <p>{{ ftl('banner-fundraising-body') }}</p>
+  {% endif %}
 
-  <form id="fundraiser-form" class="c-fundraiser-form" method="get" action="https://donate.mozilla.org/{{ LANG }}/">
+  <form id="fundraiser-form" class="c-fundraiser-form" method="get" action="https://donate.mozilla.org/{{ donate_locale }}/">
     <fieldset class="c-fundraiser-recurring">
       <label for="monthly">
         <input type="radio" value="monthly" id="monthly" name="frequency"> {{ ftl('banner-fundraising-monthly') }}
@@ -26,16 +35,21 @@
       </label>
     </fieldset>
 
-    <fieldset class="c-fundraiser-options">
-    {% for amount in donate_params.preset_list %}
-      <label for="donate{{ amount }}"{% if amount == donate_params.default %} class="selected"{% endif %}>
-        <input class="c-fundraiser-amount-input" type="radio" value="{{ amount }}" id="donate{{ amount }}" name="amount"{% if amount == donate_params.default %} checked="checked"{% endif %}>
-        <span class="mzp-c-button mzp-t-secondary mzp-t-dark">{{ ftl('banner-fundraising-amount', amount=amount) }}</span>
-      </label>
-    {% endfor %}
-    </fieldset>
+    <div class="c-fundraiser-donation-choice">
+      <fieldset class="c-fundraiser-options">
+        {% for amount in donate_params.preset_list %}
+          <label for="donate{{ amount }}"{% if amount == donate_params.default %} class="selected"{% endif %}>
+            <input class="c-fundraiser-amount-input" type="radio" value="{{ amount }}" id="donate{{ amount }}" name="amount"{% if amount == donate_params.default %} checked="checked"{% endif %}>
+            {# make sure we use the currency defined in the settings file, to avoid the wrong symbol being used in translations #}
+            <span class="mzp-c-button mzp-t-secondary mzp-t-lg mzp-t-dark">{{ donate_params.symbol }}{{ amount }}</span>
+          </label>
+        {% endfor %}
+      </fieldset>
 
-    <button type="submit" class="mzp-c-button mzp-t-dark">{{ ftl('banner-fundraising-donate') }}</button>
+      <div class="c-fundraiser-submit">
+        <button type="submit" class="mzp-c-button mzp-t-lg mzp-t-dark">{{ ftl('banner-fundraising-donate') }}</button>
+      </div>
+    </div>
 
     <input type="hidden" name="currency" value="{{ donate_params.currency }}">
     <input type="hidden" name="presets" value="{{ donate_params.presets }}">
